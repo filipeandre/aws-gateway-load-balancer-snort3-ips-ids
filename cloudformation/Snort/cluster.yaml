@@ -206,7 +206,7 @@ Resources:
             MountPoints: 
               - SourceVolume: "SnortLogs"
                 ContainerPath: "/var/log/snort"
-            MemoryReservation: 2048
+            MemoryReservation: 512
             Essential: true
             LogConfiguration:
               LogDriver: awslogs
@@ -657,7 +657,7 @@ Resources:
                   responseData['Data'] = ServiceName
                   responseStatus = cfnresponse.SUCCESS
                   cfnresponse.send(event, context, responseStatus, responseData)
-      Runtime: python3.7
+      Runtime: python3.9
       Timeout: 30
 
   VpceServiceName:

@@ -193,7 +193,7 @@ Resources:
           oinkcode: !Ref Oinkcode
           homenet: !Ref HOMENET
       Handler: index.lambda_handler
-      Runtime: python3.8
+      Runtime: python3.9
       Timeout: 900
       Layers: 
         - !Sub arn:aws:lambda:${AWS::Region}:553035198032:layer:git-lambda2:8 # https://github.com/lambci/git-lambda-layer
