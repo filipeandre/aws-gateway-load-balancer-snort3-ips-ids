@@ -38,17 +38,17 @@ Parameters:
 
   SnortInstanceType:
     Type: String
-    Default: t3.large
+    Default: t3a.micro
 
   SnortClusterMinSize:
     Description: The base number of Snort containers in the cluster. Each container will have it's own EC2 instance.
     Type: String
-    Default: 2
+    Default: 1
 
   SnortClusterMaxSize:
     Description: The maximum number of Snort containers in the cluster. Each container will have it's own EC2 instance.
     Type: String
-    Default: 10
+    Default: 2
 
   SnortCpuScalingPercentage:
     Description: ECS will scale up a new Snort container when the service reaches this average CPU utilization.
