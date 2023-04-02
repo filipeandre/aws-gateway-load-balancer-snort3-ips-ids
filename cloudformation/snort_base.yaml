@@ -3,7 +3,7 @@ Description: Pipeline Automation Template
 
 Parameters:
   GitRepo:
-    Default: https://github.com/p4lcsi/scalable-snort-gwlb-cicd.git
+    Default: https://github.com/filipeandre/aws-gateway-load-balancer-snort3-ips-ids.git
     Type: String
 
   VpcName:

@@ -1,33 +1,32 @@
-FROM public.ecr.aws/amazonlinux/amazonlinux:2022
-RUN yum -y update
-RUN yum -y install yum-utils
+FROM public.ecr.aws/amazonlinux/amazonlinux:latest
 
-RUN yum -y  install vim git
+RUN dnf -y install yum-utils
+#https://mirrors.fedoraproject.org/mirrorlist?repo=fedora-37&arch=aarch64
+RUN yum-config-manager --add-repo='http://fedora.mirror.root.lu/releases/37/Everything/aarch64/os/'
+RUN dnf -y install fedora-gpg-keys --nogpgcheck
+RUN rpm --import /etc/pki/rpm-gpg/RPM-GPG-KEY-fedora-37-aarch64
+RUN dnf update -y
+
+RUN dnf -y  install git
 RUN echo " /usr/local/lib" >> "/etc/ld.so.conf.d/local.conf"
 RUN echo " /usr/local/lib64" >> "/etc/ld.so.conf.d/local.conf"
 RUN ldconfig
-RUN mkdir /work 
-RUN mkdir /packages 
-RUN yum -y  install flex bison gcc gcc-c++ make cmake3 automake autoconf libtool diffutils check check-devel
-RUN cd /work && git clone https://github.com/ofalk/libdnet.git libdnet
-RUN cd /work/libdnet && ./configure && make && make install
-RUN yum -y  install libpcap-devel pcre-devel hwloc-devel openssl-devel zlib-devel pkgconf libmnl-devel libunwind-devel
-RUN yum -y install g++ hwloc openssl libpcap pcre libuuid uuid-devel pkgconf-pkg-config zlib luajit luajit-devel
+RUN mkdir /work
+RUN mkdir /packages
+RUN dnf -y  install flex bison gcc gcc-c++ make cmake3 automake autoconf libtool diffutils check check-devel
+RUN dnf -y install libdnet-devel libdnet
+RUN dnf -y  install libpcap-devel pcre-devel hwloc-devel openssl-devel zlib-devel pkgconf libmnl-devel libunwind-devel
+RUN dnf -y install g++ hwloc openssl libpcap pcre libuuid uuid-devel pkgconf-pkg-config zlib luajit luajit-devel
 
 RUN cd /work && git clone https://github.com/snort3/libdaq.git libdaq
 RUN cd /work/libdaq && ./bootstrap && ./configure && make && make install && ldconfig
 
-RUN yum -y install xz-devel libuuid-devel
-RUN yum -y install cmake3
-RUN yum -y install dnf-plugins-core
-RUN yum -y install wget
-
-RUN yum -y install https://kojipkgs.fedoraproject.org//packages/libsafec/3.3/9.fc35/x86_64/libsafec-3.3-9.fc35.x86_64.rpm
-RUN yum -y install https://kojipkgs.fedoraproject.org//packages/libsafec/3.3/9.fc35/x86_64/libsafec-devel-3.3-9.fc35.x86_64.rpm
-
-RUN ln -s /usr/lib64/pkgconfig/safec-3.3.pc /usr/lib64/pkgconfig/libsafec.pc
-
-RUN yum -y  install gperftools-devel
+RUN dnf -y install xz-devel libuuid-devel
+RUN dnf -y install cmake3
+RUN dnf -y install dnf-plugins-core
+RUN dnf -y install wget
+RUN dnf -y install libsafec
+RUN dnf -y  install gperftools-devel
 
 RUN cd /work && git clone https://github.com/snort3/snort3.git snort3_latest
 RUN export CFLAGS="-O3"
@@ -60,18 +59,18 @@ RUN chmod -R 5700 /var/log/snort
 
 COPY pulledpork.conf /usr/local/etc/pulledpork3/
 
-RUN yum -y install https://kojipkgs.fedoraproject.org//packages/supervisor/4.2.2/3.el9/noarch/supervisor-4.2.2-3.el9.noarch.rpm
+RUN dnf -y install https://kojipkgs.fedoraproject.org//packages/supervisor/4.2.2/3.el9/noarch/supervisor-4.2.2-3.el9.noarch.rpm
 
 
 RUN mkdir -p /usr/local/etc/snort/{builtin_rules,rules,appid,intel,lists}
-RUN cd /work && curl -Lo snort-openappid.tar.gz https://snort.org/downloads/openappid/23020 
+RUN cd /work && curl -Lo snort-openappid.tar.gz https://www.snort.org/downloads/openappid/26425
 RUN cd /work && tar xf snort-openappid.tar.gz
 RUN cd /work && mv odp/ /usr/local/etc/snort/appid/
 
 RUN touch /usr/local/etc/snort/rules/snort.rules
 RUN touch /usr/local/etc/snort/lists/reputation.blacklist
 
-RUN yum -y install pip
+RUN dnf -y install pip
 RUN pip install requests
 
 RUN cd /work && git clone https://github.com/shirkdog/pulledpork3.git
