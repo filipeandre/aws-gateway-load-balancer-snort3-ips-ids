@@ -28,7 +28,6 @@ HOME_NET = '172.16.0.0/16'
 EXTERNAL_NET = 'any'
 
 include 'snort_defaults.lua'
-include 'file_magic.lua'
 
 ---------------------------------------------------------------------------
 -- 2. configure inspection
@@ -81,13 +80,14 @@ ftp_server = default_ftp_server
 ftp_client = { }
 ftp_data = { }
 
-http_inspect = default_http_inspect
+http_inspect = { }
 http2_inspect = { }
 
+-- see file_magic.rules for file id rules
+file_id = { rules_file = 'file_magic.rules' }
+file_policy = { }
 
-file_id = { file_rules = file_magic }
-
-
+js_norm = default_js_norm
 
 -- the following require additional configuration to be fully effective:
 
@@ -120,6 +120,8 @@ binder =
     { when = { proto = 'tcp', ports = '502', role='server' }, use = { type = 'modbus' } },
     { when = { proto = 'tcp', ports = '2123 2152 3386', role='server' }, use = { type = 'gtp_inspect' } },
     { when = { proto = 'tcp', ports = '2404', role='server' }, use = { type = 'iec104' } },
+    { when = { proto = 'udp', ports = '22222', role = 'server' }, use = { type = 'cip' } },
+    { when = { proto = 'tcp', ports = '44818', role = 'server' }, use = { type = 'cip' } },
 
     { when = { proto = 'tcp', service = 'dcerpc' }, use = { type = 'dce_tcp' } },
     { when = { proto = 'udp', service = 'dcerpc' }, use = { type = 'dce_udp' } },
@@ -129,6 +131,7 @@ binder =
     { when = { service = 'dce_http_server' },  use = { type = 'dce_http_server' } },
     { when = { service = 'dce_http_proxy' },   use = { type = 'dce_http_proxy' } },
 
+    { when = { service = 'cip' },              use = { type = 'cip' } },
     { when = { service = 'dnp3' },             use = { type = 'dnp3' } },
     { when = { service = 'dns' },              use = { type = 'dns' } },
     { when = { service = 'ftp' },              use = { type = 'ftp_server' } },
@@ -138,6 +141,7 @@ binder =
     { when = { service = 'http' },             use = { type = 'http_inspect' } },
     { when = { service = 'http2' },            use = { type = 'http2_inspect' } },
     { when = { service = 'iec104' },           use = { type = 'iec104' } },
+    { when = { service = 'mms' },              use = { type = 'mms' } },
     { when = { service = 'modbus' },           use = { type = 'modbus' } },
     { when = { service = 'pop3' },             use = { type = 'pop' } },
     { when = { service = 'ssh' },              use = { type = 'ssh' } },
@@ -145,6 +149,7 @@ binder =
     { when = { service = 'smtp' },             use = { type = 'smtp' } },
     { when = { service = 'ssl' },              use = { type = 'ssl' } },
     { when = { service = 'sunrpc' },           use = { type = 'rpc_decode' } },
+    { when = { service = 's7commplus' },       use = { type = 's7commplus' } },
     { when = { service = 'telnet' },           use = { type = 'telnet' } },
 
     { use = { type = 'wizard' } }
@@ -248,6 +253,7 @@ data_log =
     key = 'http_request_header_event',
     limit = 100 
 }
+--alert_fast = { }
 --alert_full = { }
 --alert_sfsocket = { }
 --alert_syslog = { facility = local7, level = alert, options = pid }

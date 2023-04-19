@@ -59,7 +59,7 @@ RUN chmod -R 5700 /var/log/snort
 
 COPY pulledpork.conf /usr/local/etc/pulledpork3/
 
-RUN dnf -y install https://kojipkgs.fedoraproject.org//packages/supervisor/4.2.2/3.el9/noarch/supervisor-4.2.2-3.el9.noarch.rpm
+RUN dnf -y install https://kojipkgs.fedoraproject.org/packages/supervisor/4.2.2/3.el9/noarch/supervisor-4.2.2-3.el9.noarch.rpm
 
 
 RUN mkdir -p /usr/local/etc/snort/{builtin_rules,rules,appid,intel,lists}
