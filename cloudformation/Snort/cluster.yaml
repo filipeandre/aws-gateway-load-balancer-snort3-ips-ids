@@ -156,7 +156,7 @@ Resources:
     Properties: 
       Cluster: !Ref SnortEcsCluster
       DeploymentConfiguration: 
-        MaximumPercent: 100
+        MaximumPercent: 200
         MinimumHealthyPercent: 50
       DeploymentController: 
         Type: ECS
