@@ -4,8 +4,12 @@ env:
   shell: bash
   exported-variables: image
 
+batch:
+  fast-fail: true
+
 phases:
   pre_build:
+    on-failure: ABORT
     commands:
       - deployed_md5sum=$(aws ssm get-parameter --name "$MD5SUM_SSM_PARAMETER" --region "$AWS_REGION" --output text --query Parameter.Value 2> /dev/null)
       - commited_md5sum=$(find Dockerfiles/snort/ -type f -exec md5sum {} + | awk '{print $1}' | LC_ALL=C sort | md5sum | awk '{print $1}')
@@ -23,6 +27,7 @@ phases:
           echo "No changes for the Snort container, exiting pre_build phase" 
         fi
   build:
+    on-failure: ABORT
     commands: 
       - |
         if [[ "$build" == "true" ]]; then
@@ -32,6 +37,7 @@ phases:
           echo "No changes for the Snort container, exiting build phase"   
         fi 
   post_build:
+    on-failure: ABORT
     commands:
       - |
         if [[ "$build" == "true" ]]; then
