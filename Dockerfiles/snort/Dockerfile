@@ -78,7 +78,7 @@ RUN cd /work/pulledpork3 && mkdir /usr/local/bin/pulledpork3 && cp pulledpork.py
 RUN cd /work/pulledpork3 && cp -r lib/ /usr/local/bin/pulledpork3
 RUN chmod +x /usr/local/bin/pulledpork3/pulledpork.py
 COPY snort.lua snort_defaults.lua /usr/local/etc/snort/
-COPY docker-entrypoint.sh supervisord.conf /
+COPY docker-entrypoint.sh supervisord.conf update-config.sh /
 COPY local.rules /usr/local/etc/snort/rules/
 
 RUN ["chmod", "+x", "/docker-entrypoint.sh"]

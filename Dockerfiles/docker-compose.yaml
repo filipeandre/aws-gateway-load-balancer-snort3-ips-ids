@@ -1,0 +1,9 @@
+version: '3'
+
+services:
+  snort:
+    build:
+      context: snort
+    image: "filipeandre/snort:local"
+    env_file:
+      - snort.env

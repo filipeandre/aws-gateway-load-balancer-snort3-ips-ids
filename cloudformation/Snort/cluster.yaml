@@ -1,4 +1,5 @@
-AWSTemplateFormatVersion: "2010-09-09"
+AWSTemplateFormatVersion: 2010-09-09
+Description: Snort cluster
 
 Parameters:
   VpcId:
@@ -29,7 +30,7 @@ Parameters:
     Description: "How many days snort3 logs should be saved in Cloudwatch"
     Default: 3
     Type: Number
-    AllowedValues: [1, 3, 5, 7, 14, 30, 60, 90, 120, 150, 180, 365, 400, 545, 731, 1827, 3653]
+    AllowedValues: [ 1, 3, 5, 7, 14, 30, 60, 90, 120, 150, 180, 365, 400, 545, 731, 1827, 3653 ]
 
   SnortImage:
     Description: Container image
@@ -55,71 +56,84 @@ Parameters:
     Type: String
     Default: 80.0
 
+  Oinkcode:
+    Description: >
+      Oinkcodes are unique keys associated to your snort3 user account. The oinkcode acts as an api key for downloading rule packages. Please enter your unique oinkcode from your snort.org user account
+    Type: String
+    NoEcho: true
+
+  HOMENET:
+    Description: >
+      Enter the CIDR range of the network you would like to protect. For example, to protect egress traffic from a VPC with CIDR, 10.0.0.0/16, enter 10.0.0.0/16
+    Type: String
+    AllowedPattern: ^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])(\/(1[6-9]|2[0-8]))$
+    ConstraintDescription: CIDR block parameter must be in the form x.x.x.x/16-28
+
 Resources:
   SnortFileLogGroup:
     Type: AWS::Logs::LogGroup
-    Properties: 
+    Properties:
       LogGroupName: !Sub /${AWS::StackName}/Snort/FileLogs
       RetentionInDays: !Ref DefaultLogRententionCloudWatch
   SnortDataLogGroup:
     Type: AWS::Logs::LogGroup
-    Properties: 
+    Properties:
       LogGroupName: !Sub /${AWS::StackName}/Snort/Data_log
       RetentionInDays: !Ref DefaultLogRententionCloudWatch
   SnortAppIDLogGroup:
     Type: AWS::Logs::LogGroup
-    Properties: 
+    Properties:
       LogGroupName: !Sub /${AWS::StackName}/Snort/appid
       RetentionInDays: !Ref DefaultLogRententionCloudWatch
   SnortAlertCSVLogGroup:
     Type: AWS::Logs::LogGroup
-    Properties: 
+    Properties:
       LogGroupName: !Sub /${AWS::StackName}/Snort/alert_csv
       RetentionInDays: !Ref DefaultLogRententionCloudWatch
-          
+
   SnortPcapBucket:
     Type: AWS::S3::Bucket
     DeletionPolicy: Retain
     Properties:
-      BucketName: !Sub 
+      BucketName: !Sub
         - snort-pcapfiles-${AWS::Region}-${AWS::AccountId}-${RandomizedValue}
         - RandomizedValue:
-            Fn::Select: [0, Fn::Split: [-, Fn::Select: [2, Fn::Split: [/, !Ref AWS::StackId ]]]] # Takes the first part of the random GUID in the cloudformation stacks arn.
+            Fn::Select: [ 0, Fn::Split: [ -, Fn::Select: [ 2, Fn::Split: [ /, !Ref AWS::StackId ] ] ] ] # Takes the first part of the random GUID in the cloudformation stacks arn.
       LifecycleConfiguration:
         Rules:
           - Status: Enabled
             ExpirationInDays: !Ref PcapLogRententionS3
-      BucketEncryption: 
+      BucketEncryption:
         ServerSideEncryptionConfiguration:
           - ServerSideEncryptionByDefault:
               SSEAlgorithm: AES256
-      
+
   SnortLogsEfs:
     Type: AWS::EFS::FileSystem
     Properties:
       Encrypted: True
-    
+
   SnortLogsEfsMountTarget1:
     Type: AWS::EFS::MountTarget
-    Properties: 
+    Properties:
       FileSystemId: !Ref SnortLogsEfs
-      SecurityGroups: 
+      SecurityGroups:
         - !Ref SnortLogsEfsSecurityGroup
       SubnetId: !Ref PrivateSubnet1
 
   SnortLogsEfsMountTarget2:
     Type: AWS::EFS::MountTarget
-    Properties: 
+    Properties:
       FileSystemId: !Ref SnortLogsEfs
-      SecurityGroups: 
+      SecurityGroups:
         - !Ref SnortLogsEfsSecurityGroup
       SubnetId: !Ref PrivateSubnet2
 
   SnortLogsEfsMountTarget3:
     Type: AWS::EFS::MountTarget
-    Properties: 
+    Properties:
       FileSystemId: !Ref SnortLogsEfs
-      SecurityGroups: 
+      SecurityGroups:
         - !Ref SnortLogsEfsSecurityGroup
       SubnetId: !Ref PrivateSubnet3
 
@@ -133,7 +147,7 @@ Resources:
         - SourceSecurityGroupId: !Ref SnortSecurityGroup
           IpProtocol: "TCP"
           FromPort: 2049
-          ToPort: 2049 
+          ToPort: 2049
       SecurityGroupEgress:
         - CidrIp: 0.0.0.0/0
           IpProtocol: "-1"
@@ -142,9 +156,9 @@ Resources:
       Tags:
         - Key: Name
           Value: "EFS SG"
-##
-## ECS
-##
+  ##
+  ## ECS
+  ##
   SnortEcsCluster:
     Type: AWS::ECS::Cluster
 
@@ -152,18 +166,18 @@ Resources:
     Type: AWS::ECS::Service
     DependsOn:
       - "SnortAutoScalingGroup"
-      - "SnortCapacityProviderAssociation" 
-    Properties: 
+      - "SnortCapacityProviderAssociation"
+    Properties:
       Cluster: !Ref SnortEcsCluster
-      DeploymentConfiguration: 
+      DeploymentConfiguration:
         MaximumPercent: 200
         MinimumHealthyPercent: 50
-      DeploymentController: 
+      DeploymentController:
         Type: ECS
       DesiredCount: !Ref SnortClusterMinSize
       EnableECSManagedTags: true
-      PlacementConstraints: 
-        - Type: distinctInstance 
+      PlacementConstraints:
+        - Type: distinctInstance
       SchedulingStrategy: REPLICA
       ServiceName: Snort
       TaskDefinition: !Ref SnortTaskDefinition
@@ -171,56 +185,61 @@ Resources:
   SnortCapacityProvider:
     Type: AWS::ECS::CapacityProvider
     Properties:
-      AutoScalingGroupProvider: 
+      AutoScalingGroupProvider:
         AutoScalingGroupArn: !Ref SnortAutoScalingGroup
-        ManagedScaling: 
+        ManagedScaling:
           TargetCapacity: 100
           Status: ENABLED
         ManagedTerminationProtection: DISABLED
 
-  SnortCapacityProviderAssociation: 
+  SnortCapacityProviderAssociation:
     Type: AWS::ECS::ClusterCapacityProviderAssociations
-    Properties: 
-      CapacityProviders: 
+    Properties:
+      CapacityProviders:
         - !Ref SnortCapacityProvider
-      Cluster: !Ref SnortEcsCluster 
-      DefaultCapacityProviderStrategy: 
+      Cluster: !Ref SnortEcsCluster
+      DefaultCapacityProviderStrategy:
         - Base: !Ref SnortClusterMinSize
           Weight: 1
           CapacityProvider: !Ref SnortCapacityProvider
 
   SnortTaskDefinition:
     Type: AWS::ECS::TaskDefinition
-    Properties: 
-        Family: !Sub ${AWS::StackName}-SnortTaskDefinition
-        NetworkMode: host
-        Volumes:
-        - Host: 
+    Properties:
+      Family: !Sub ${AWS::StackName}-SnortTaskDefinition
+      NetworkMode: host
+      Volumes:
+        - Host:
             SourcePath: /var/log/snort/
           Name: SnortLogs
-        RequiresCompatibilities:
-          - "EC2"
-        ContainerDefinitions: 
-          - Name: "Snort"
-            Image: !Ref SnortImage
-            MountPoints: 
-              - SourceVolume: "SnortLogs"
-                ContainerPath: "/var/log/snort"
-            MemoryReservation: 512
-            Essential: true
-            LogConfiguration:
-              LogDriver: awslogs
-              Options:
-                awslogs-group: !Sub "/${AWS::StackName}/container/snort/stdout"
-                awslogs-region: !Ref AWS::Region
-                awslogs-stream-prefix: "stdout"
-                awslogs-create-group: "true"
-            LinuxParameters:
-              Capabilities:
-                Add:
+      RequiresCompatibilities:
+        - "EC2"
+      ContainerDefinitions:
+        - Name: "Snort"
+          Environment:
+            - Name: OINKCODE
+              Value: !Ref Oinkcode
+            - Name: HOMENET
+              Value: !Ref HOMENET
+          Image: !Ref SnortImage
+          MountPoints:
+            - SourceVolume: "SnortLogs"
+              ContainerPath: "/var/log/snort"
+          MemoryReservation: 512
+          Essential: true
+          LogConfiguration:
+            LogDriver: awslogs
+            Options:
+              awslogs-group: !Sub "/${AWS::StackName}/container/snort/stdout"
+              awslogs-region: !Ref AWS::Region
+              awslogs-stream-prefix: "stdout"
+              awslogs-create-group: "true"
+          LinuxParameters:
+            Capabilities:
+              Add:
                 - NET_ADMIN
                 - SYS_NICE
-              
+
   SnortScalableTarget:
     Type: AWS::ApplicationAutoScaling::ScalableTarget
     Properties:
@@ -246,32 +265,32 @@ Resources:
         TargetValue: !Ref SnortCpuScalingPercentage
 
   SnortEcsAutoScalingRole:
-      Type: AWS::IAM::Role
-      Properties:
-        AssumeRolePolicyDocument:
-          Statement:
-            - Effect: Allow
-              Principal:
-                Service: [application-autoscaling.amazonaws.com]
-              Action: ["sts:AssumeRole"]
-        Policies:
-          - PolicyName: SnortEcsAutoScalingPolicy
-            PolicyDocument:
-              Version: "2012-10-17"
-              Statement:
-                - Effect: Allow
-                  Action:
-                    - ecs:DescribeServices
-                    - ecs:UpdateService
-                    - cloudwatch:PutMetricAlarm
-                    - cloudwatch:DescribeAlarms
-                    - cloudwatch:DeleteAlarms
-                  Resource:
-                    - "*"
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: [ application-autoscaling.amazonaws.com ]
+            Action: [ "sts:AssumeRole" ]
+      Policies:
+        - PolicyName: SnortEcsAutoScalingPolicy
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action:
+                  - ecs:DescribeServices
+                  - ecs:UpdateService
+                  - cloudwatch:PutMetricAlarm
+                  - cloudwatch:DescribeAlarms
+                  - cloudwatch:DeleteAlarms
+                Resource:
+                  - "*"
 
-##
-## Compute
-##
+  ##
+  ## Compute
+  ##
   SnortSecurityGroup:
     Type: AWS::EC2::SecurityGroup
     Properties:
@@ -310,8 +329,8 @@ Resources:
         - !Ref PrivateSubnet2
         - !Ref PrivateSubnet3
       Tags:
-      - Key: Name
-        Value: "Snort GWLB"
+        - Key: Name
+          Value: "Snort GWLB"
 
   TargetGroup:
     Type: AWS::ElasticLoadBalancingV2::TargetGroup
@@ -319,22 +338,22 @@ Resources:
       Port: 6081
       Protocol: GENEVE
       TargetGroupAttributes:
-      - Key: deregistration_delay.timeout_seconds
-        Value: "20"
+        - Key: deregistration_delay.timeout_seconds
+          Value: "20"
       VpcId: !Ref VpcId
       HealthCheckPort: "80"
       HealthCheckProtocol: HTTP
       TargetType: instance
       Tags:
-      - Key: Name
-        Value: "Snort Target Group"
+        - Key: Name
+          Value: "Snort Target Group"
 
   Listener:
     Type: AWS::ElasticLoadBalancingV2::Listener
     Properties:
       DefaultActions:
-      - Type: forward
-        TargetGroupArn: !Ref TargetGroup
+        - Type: forward
+          TargetGroupArn: !Ref TargetGroup
       LoadBalancerArn: !Ref Gwlb
 
   SnortEcsInstanceRole:
@@ -379,7 +398,7 @@ Resources:
       Path: /
       Roles:
         - !Ref SnortEcsInstanceRole
-  
+
   SnortLaunchConfiguration:
     Type: AWS::AutoScaling::LaunchConfiguration
     Properties:
@@ -387,7 +406,7 @@ Resources:
       InstanceType: !Ref SnortInstanceType
       ImageId: !Ref Ami
       SecurityGroups:
-      - !Ref SnortSecurityGroup
+        - !Ref SnortSecurityGroup
       UserData:
         Fn::Base64:
           !Sub |
@@ -522,7 +541,7 @@ Resources:
                   "interface_exclude": [
                     "docker0", 
                     "lo"
-                  
+          
                   ],
                   "metrics_include": [
                     "rx_packets",
@@ -550,29 +569,30 @@ Resources:
           ECS_BACKEND_HOST=
           EOF
 
+
   SnortAutoScalingGroup:
     Type: AWS::AutoScaling::AutoScalingGroup
     Properties:
       HealthCheckGracePeriod: 600
       HealthCheckType: ELB
       LaunchConfigurationName: !Ref SnortLaunchConfiguration
-      MaxSize: !Ref SnortClusterMaxSize 
+      MaxSize: !Ref SnortClusterMaxSize
       MinSize: "0" #Controlled by ECS Capacity Provider
       NewInstancesProtectedFromScaleIn: false
       VPCZoneIdentifier:
-      - !Ref PrivateSubnet1
-      - !Ref PrivateSubnet2
-      - !Ref PrivateSubnet3
+        - !Ref PrivateSubnet1
+        - !Ref PrivateSubnet2
+        - !Ref PrivateSubnet3
       TargetGroupARNs:
-      - !Ref TargetGroup
+        - !Ref TargetGroup
       Tags:
-      - Key: Name
-        Value: 'Snort Instance'
-        PropagateAtLaunch: True
+        - Key: Name
+          Value: 'Snort Instance'
+          PropagateAtLaunch: True
 
-##
-## VPC Endpoint
-##
+  ##
+  ## VPC Endpoint
+  ##
   VpcEndpointService:
     Type: AWS::EC2::VPCEndpointService
     Properties:
