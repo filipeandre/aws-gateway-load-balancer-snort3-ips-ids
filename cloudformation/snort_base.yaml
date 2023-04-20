@@ -13,7 +13,7 @@ Parameters:
     AllowedPattern: "[A-Za-z0-9-]+"
   GitHubBranch:
     Type: String
-    Default: main
+    Default: aarch64
     AllowedPattern: "[A-Za-z0-9-]+"
   VpcName:
     Default: ips-service-vpc
