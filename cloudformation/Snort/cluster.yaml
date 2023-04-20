@@ -19,7 +19,7 @@ Parameters:
     Type: String
   Ami:
     Type: AWS::SSM::Parameter::Value<AWS::EC2::Image::Id>
-    Default: "/aws/service/ecs/optimized-ami/amazon-linux-2/arm64/recommended/image_id"
+    Default: "/aws/service/ecs/optimized-ami/amazon-linux-2/recommended/image_id"
 
   PcapLogRententionS3:
     Description: "How many days Pcap log should be saved in S3"
@@ -39,7 +39,7 @@ Parameters:
 
   SnortInstanceType:
     Type: String
-    Default: t4g.micro
+    Default: t3a.micro
 
   SnortClusterMinSize:
     Description: The base number of Snort containers in the cluster. Each container will have it's own EC2 instance.

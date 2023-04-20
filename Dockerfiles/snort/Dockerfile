@@ -1,10 +1,11 @@
 FROM public.ecr.aws/amazonlinux/amazonlinux:latest
 
 RUN dnf -y install yum-utils
-#https://mirrors.fedoraproject.org/mirrorlist?repo=fedora-37&arch=aarch64
-RUN yum-config-manager --add-repo='http://fedora.mirror.root.lu/releases/37/Everything/aarch64/os/'
+#ARM: https://mirrors.fedoraproject.org/mirrorlist?repo=fedora-37&arch=aarch64
+RUN yum-config-manager --add-repo='http://fedora.mirror.root.lu/releases/37/Everything/x86_64/os/'
 RUN dnf -y install fedora-gpg-keys --nogpgcheck
-RUN rpm --import /etc/pki/rpm-gpg/RPM-GPG-KEY-fedora-37-aarch64
+#ARM:  RUN rpm --import /etc/pki/rpm-gpg/RPM-GPG-KEY-fedora-37-aarch64
+RUN rpm --import /etc/pki/rpm-gpg/RPM-GPG-KEY-fedora-37-x86_64
 RUN dnf update -y
 
 RUN dnf -y  install git
@@ -59,8 +60,8 @@ RUN chmod -R 5700 /var/log/snort
 
 COPY pulledpork.conf /usr/local/etc/pulledpork3/
 
-RUN dnf -y install https://kojipkgs.fedoraproject.org/packages/supervisor/4.2.2/3.el9/noarch/supervisor-4.2.2-3.el9.noarch.rpm
-
+# ARM: https://dl.fedoraproject.org/pub/fedora/linux/releases/37/Everything/aarch64/os/Packages/s/supervisor-4.2.2-5.fc37.noarch.rpm
+RUN dnf -y install https://dl.fedoraproject.org/pub/fedora/linux/releases/37/Everything/x86_64/os/Packages/s/supervisor-4.2.2-5.fc37.noarch.rpm
 
 RUN mkdir -p /usr/local/etc/snort/{builtin_rules,rules,appid,intel,lists}
 RUN cd /work && curl -Lo snort-openappid.tar.gz https://www.snort.org/downloads/openappid/26425
