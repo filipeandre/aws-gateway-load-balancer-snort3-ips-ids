@@ -10,18 +10,18 @@ The quickest way to deploy the full solution that consists of Snort3 running on 
 
 The [snort_base.yaml](cloudformation/snort_base.yaml) template will setup a new environment from scratch, including a VPC where Snort3 will be deployed.
 
-| ![Solution_Reference Architecture](https://raw.githubusercontent.com/filipeandre/aws-gateway-load-balancer-snort3-ips-ids/main/solution_architecture.png) |
+![Solution_Reference Architecture](https://raw.githubusercontent.com/aws-samples/aws-gateway-load-balancer-snort3-ips-ids/blob/main/solution_architecture.png) |
 |:--:|
 | <b> Fig.1 - Solution Reference Architecture </b>|
 
 ### Use Snort3 for network inspection
 After you have deployed the above cloudformation template you simply need to create [Gateway Load balancer Endpoints](https://docs.aws.amazon.com/elasticloadbalancing/latest/gateway/getting-started.html#create-endpoint) and point your workload [route table](https://docs.aws.amazon.com/elasticloadbalancing/latest/gateway/getting-started.html#configure-routing) to those GWLB-endpoints so the Snort3 containers can be used to inspect your networking traffic. In case if you would like to change this behaviour and have IDS (detection only mode) - you need to edit the [supervisord.conf](Dockerfiles/snort/supervisord.conf) and replace the "-Q" parameter to "-v" for passive mode under the [program:snort3] command section.
 
-| ![North-South inspection](https://raw.githubusercontent.com/filipeandre/aws-gateway-load-balancer-snort3-ips-ids/main/north_south_inspection.png "North South Inspection Architecture") |
+| ![North-South inspection](https://raw.githubusercontent.com/aws-samples/aws-gateway-load-balancer-snort3-ips-ids/main/north_south_inspection.png "North South Inspection Architecture") |
 |:--:|
 | <b> Fig.2 - North South Inspection Architecture </b>|
 
-![East-West inspection](https://raw.githubusercontent.com/filipeandre/aws-gateway-load-balancer-snort3-ips-ids/main/east_west_inspection.png "East West Inspection Architecture")
+![East-West inspection](https://raw.githubusercontent.com/aws-samples/aws-gateway-load-balancer-snort3-ips-ids/main/east_west_inspection.png "East West Inspection Architecture")
 |:--:|
 | <b> Fig.3 - East West Inspection Architecture </b>|
 
